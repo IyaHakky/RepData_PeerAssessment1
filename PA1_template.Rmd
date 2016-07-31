@@ -1,25 +1,97 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "PA1_template.md"
+author: "IyaHakky"
+date: "Sunday, July 31, 2016"
+output: html_document
 ---
 
+The first Asiisnment for Reprodusible Research course
+=======================================================
 
-## Loading and preprocessing the data
+**The code to load the data**
 
+```{r read_data}
+raw.data <- read.csv("activity.csv")
+dim(raw.data)
+head(raw.data)
+```
 
+**What is mean total number of steps taken per day?**
+The code to calculate the total number of steps taken per day:
 
-## What is mean total number of steps taken per day?
+```{r, echo=TRUE}
+data.step.count <- aggregate(steps ~ date, data = raw.data, sum)
+head(data.step.count)
+dim(data.step.count)
+mean(data.step.count$step)
+median(data.step.count$step)
+```
 
+Make a histogram of the total number of steps taken each day
+```{r, echo=TRUE}
+hist(data.step.count$steps)
+```
 
+Now we could calculate mean and medial of step's amount per day
+```{r, echo=TRUE}
+mean(data.step.count$step)
+median(data.step.count$step)
+```
 
-## What is the average daily activity pattern?
+**What is the average daily activity pattern?**
 
+A time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
+```{r, echo=TRUE}
+data.time.series <- aggregate(steps ~ interval, data = raw.data, mean)
+dim(data.time.series)
+head(data.time.series)
 
-## Imputing missing values
+plot(data.time.series, type = "l")
+```
 
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r, echo=TRUE}
+intervals <-data.time.series$interval
+max.steps.interval <- intervals[which.max(data.time.series$steps)]
+max.steps.interval
+```
 
+**Imputing missing values**
 
-## Are there differences in activity patterns between weekdays and weekends?
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r, echo=TRUE}
+sum(is.na(raw.data$steps))
+```
+
+The strategy for filling all the missing values in the dataset is to use the mean for that 5-minute interval
+Firs, let's create a new dataset
+
+```{r, echo=TRUE}
+RawDataCorrected <- raw.data
+```
+
+The dataset before correction
+```{r, echo=TRUE}
+dim(RawDataCorrected)
+head(RawDataCorrected)
+```
+
+Now Let's replace the values
+
+```{r, echo=TRUE}
+na.rows <- which(is.na(raw.data$steps))
+for (i in na.rows) {
+  measurement <- RawDataCorrected[i,]
+  intervalNum <- measurement$interval
+  rowNumberInAverageStepsPerIntervalSet <- which(data.time.series$interval == intervalNum)
+  measurement$steps <- data.time.series[rowNumberInAverageStepsPerIntervalSet,]$steps
+  RawDataCorrected[i,] <- measurement
+}
+```
+
+The dataset After the correction
+```{r, echo=TRUE}
+dim(RawDataCorrected)
+head(RawDataCorrected)
+```
